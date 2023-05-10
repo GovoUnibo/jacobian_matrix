@@ -1,4 +1,3 @@
-from matplotlib.pyplot import axis
 from rigidBodyTF import *
 from sympy import *
 from sympy.physics.vector import init_vprinting
@@ -15,16 +14,16 @@ class FowardKinematics():
 
         i=0
 
-        self._x      = [symbols('x%i' % ii) for ii in range(self.num_joints)]
-        self._y      = [symbols('y%i' % ii) for ii in range(self.num_joints)]
-        self._z      = [symbols('z%i' % ii) for ii in range(self.num_joints)]
-        self._roll   = [symbols('roll%i' % ii) for ii in range(self.num_joints)]
+        self._x      = [symbols('x%i' % ii)     for ii in range(self.num_joints)]
+        self._y      = [symbols('y%i' % ii)     for ii in range(self.num_joints)]
+        self._z      = [symbols('z%i' % ii)     for ii in range(self.num_joints)]
+        self._roll   = [symbols('roll%i' % ii)  for ii in range(self.num_joints)]
         self._pitch  = [symbols('pitch%i' % ii) for ii in range(self.num_joints)]
-        self._yaw    = [symbols('yaw%i' % ii) for ii in range(self.num_joints)]
+        self._yaw    = [symbols('yaw%i' % ii)   for ii in range(self.num_joints)]
 
-        self._alpha = [symbols('alpha%i' % ii) for ii in range(self.num_joints)]
-        self._beta  = [symbols('beta%i' % ii) for ii in range(self.num_joints)]
-        self._gamma = [symbols('gamma%i' % ii) for ii in range(self.num_joints)]
+        self._alpha = [symbols('alpha%i' % ii)  for ii in range(self.num_joints)]
+        self._beta  = [symbols('beta%i' % ii)   for ii in range(self.num_joints)]
+        self._gamma = [symbols('gamma%i' % ii)  for ii in range(self.num_joints)]
 
         self._theta = [dynamicsymbols('theta%i' % ii) for ii in range(self.num_joints)]
 
@@ -67,9 +66,9 @@ class FowardKinematics():
     def setJ1AxisRotation(self, axis_rot = []):
         J1_index = 0
         self.axis_rotation_J1 = [axis_rot[k]*self._theta[J1_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta1 = self.parametric_RotationMatrix[J1_index].subs({self._gamma[J1_index] : self.axis_rotation_J1[0],
-                                                                                    self._beta[J1_index]  : self.axis_rotation_J1[1],
-                                                                                    self._alpha[J1_index] : self.axis_rotation_J1[2]
+        self.RotMatrix_funcOfTheta1 = self.parametric_RotationMatrix[J1_index].subs({self._gamma[J1_index]  : self.axis_rotation_J1[0],
+                                                                                    self._beta[J1_index]    : self.axis_rotation_J1[1],
+                                                                                    self._alpha[J1_index]   : self.axis_rotation_J1[2]
                                                                                     })
 
     def setJ2AxisRotation(self, axis_rot = []):
@@ -124,6 +123,7 @@ class FowardKinematics():
         T_56_theta = self.T_56*self.RotMatrix_funcOfTheta6
 
         return self.T_0b * T_b1_theta * T_12_theta * T_23_theta * T_34_theta * T_45_theta * T_56_theta
+    
     def getDirectKin_numeric(self, j1, j2, j3, j4, j5, j6):
 
         T_06_param = self.getDirectKin_ThetaParam()

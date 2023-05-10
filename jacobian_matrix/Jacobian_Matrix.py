@@ -1,5 +1,6 @@
 from numpy import matrix
 from sympy import Matrix
+from sympy import evalf
 from Forward_Kinematics import FowardKinematics
 import sympy
 
@@ -78,8 +79,9 @@ class Jacobian(FowardKinematics):
                         [Jw_col1[2],    Jw_col2[2],     Jw_col3[2],     Jw_col4[2],     Jw_col5[2],     Jw_col6[2]]
                     
                         ])
-
-        return Jacobian
+        Jacobian = sympy.simplify(Jacobian)
+        
+        return Jacobian.evalf(3)
 
     def getJacobianNumeric(self, j1, j2, j3, j4, j5, j6):
         joint_values = []
@@ -127,5 +129,6 @@ if __name__ == '__main__':
     Jc.setJ6AxisRotation(axis_rotation_j6)
 
     
-    print(Jc.getJacobianNumeric(-0.0289, 0.29937, 1.2057, -0.684427, 1.52358, -0.00002))
+    # print(Jc.getJacobianNumeric(-0.0289, 0.29937, 1.2057, -0.684427, 1.52358, -0.00002))
+    print(Jc.getJacobianParametric())
 
