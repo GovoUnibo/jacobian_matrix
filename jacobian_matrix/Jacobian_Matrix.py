@@ -14,33 +14,33 @@ class Jacobian(FowardKinematics):
         #prendo la colonna della matrice corrispondente all'asse di rotazione di rotazione z_ii
         z_11 = Matrix([self.axis_rotation_J1[0], self.axis_rotation_J1[1], self.axis_rotation_J1[2]])
         z_11 = z_11.subs({self._theta[0]: 1})
-        return self.T_0b[0:3, 0:3]* z_11
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * z_11
          
     
     def __column2(self):
         z_22 = Matrix([self.axis_rotation_J2[0], self.axis_rotation_J2[1], self.axis_rotation_J2[2]])
         z_22 = z_22.subs({self._theta[1]: 1})
-        return self.T_0b[0:3, 0:3]* self.RotMatrix_funcOfTheta1[0:3, 0:3] * z_22
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * self.T_12[0:3, 0:3] * z_22
 
     def __column3(self):
         z_33 = Matrix([self.axis_rotation_J3[0], self.axis_rotation_J3[1], self.axis_rotation_J3[2]])
         z_33 = z_33.subs({self._theta[2]: 1})
-        return self.T_0b[0:3, 0:3]* self.RotMatrix_funcOfTheta1[0:3, 0:3] * self.RotMatrix_funcOfTheta2[0:3, 0:3] * z_33
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * self.T_12[0:3, 0:3] * self.T_23[0:3, 0:3] * z_33
 
     def __column4(self):
         z_44 = Matrix([self.axis_rotation_J4[0], self.axis_rotation_J4[1], self.axis_rotation_J4[2]])
         z_44 = z_44.subs({self._theta[3]: 1})
-        return self.T_0b[0:3, 0:3]* self.RotMatrix_funcOfTheta1[0:3, 0:3] * self.RotMatrix_funcOfTheta2[0:3, 0:3] * self.RotMatrix_funcOfTheta3[0:3, 0:3] * z_44
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * self.T_12[0:3, 0:3] * self.T_23[0:3, 0:3] * self.T_34[0:3, 0:3] * z_44
 
     def __column5(self):
         z_55 = Matrix([self.axis_rotation_J5[0], self.axis_rotation_J5[1], self.axis_rotation_J5[2]])
         z_55 = z_55.subs({self._theta[4]: 1})
-        return self.T_0b[0:3, 0:3]* self.RotMatrix_funcOfTheta1[0:3, 0:3] * self.RotMatrix_funcOfTheta2[0:3, 0:3] * self.RotMatrix_funcOfTheta3[0:3, 0:3] * self.RotMatrix_funcOfTheta4[0:3, 0:3] * z_55
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * self.T_12[0:3, 0:3] * self.T_23[0:3, 0:3] * self.T_34[0:3, 0:3] * self.T_45[0:3, 0:3] * z_55
 
     def __column6(self):
         z_66 = Matrix([self.axis_rotation_J6[0], self.axis_rotation_J6[1], self.axis_rotation_J6[2]])
         z_66 = z_66.subs({self._theta[5]: 1})
-        return self.T_0b[0:3, 0:3]* self.RotMatrix_funcOfTheta1[0:3, 0:3] * self.RotMatrix_funcOfTheta2[0:3, 0:3] * self.RotMatrix_funcOfTheta3[0:3, 0:3] * self.RotMatrix_funcOfTheta4[0:3, 0:3] * self.RotMatrix_funcOfTheta5[0:3, 0:3] * z_66
+        return self.T_0b[0:3, 0:3] * self.T_b1[0:3, 0:3] * self.T_12[0:3, 0:3] * self.T_23[0:3, 0:3] * self.T_34[0:3, 0:3] * self.T_45[0:3, 0:3] * self.T_56[0:3, 0:3] * z_66
 
     def getJacobianParametric(self):
 
@@ -79,6 +79,8 @@ class Jacobian(FowardKinematics):
                         [Jw_col1[2],    Jw_col2[2],     Jw_col3[2],     Jw_col4[2],     Jw_col5[2],     Jw_col6[2]]
                     
                         ])
+        
+        # return Jacobian
         Jacobian = sympy.simplify(Jacobian)
         
         return Jacobian.evalf(3)
@@ -103,24 +105,29 @@ class Jacobian(FowardKinematics):
 if __name__ == '__main__':
 
 
-    axis_rotation_j1 = [0, 1, 0] #ruota positivo attorno all'asse y quando il verso di rotazione è positivo
-    axis_rotation_j2 = [0, 0, -1]#ruota negativo attorno all'asse z quando il verso di rotazione è positivo
-    axis_rotation_j3 = [0, 0, -1]
-    axis_rotation_j4 = [0, 0, -1]
-    axis_rotation_j5 = [0, 1, 0]
+    axis_rotation_j1 = [0, 0, 1] #ruota positivo attorno all'asse y quando il verso di rotazione è positivo
+    axis_rotation_j2 = [0, 0, 1]#ruota negativo attorno all'asse z quando il verso di rotazione è positivo
+    axis_rotation_j3 = [0, 0, 1]
+    axis_rotation_j4 = [0, 0, 1]
+    axis_rotation_j5 = [0, 0, 1]
     axis_rotation_j6 = [0, 0, 1]
 
     Jc = Jacobian(6)
 
-    Jc.setPos_World_Base(0, 0, 0,       1.5708, 0, 0)
-    Jc.setPos_Base_J1(0, 0.1452, 0,     0, 0, 0)
-    Jc.setPos_J1_J2(0, 0, 0.146,        0, 0, 0)
-    Jc.setPos_J2_J3(0, 0.429, -0.1297,  0, 0, 0)
-    Jc.setPos_J3_J4(0, 0.4115, 0.106,   0, 0, 0)
-    Jc.setPos_J4_J5(0, 0.106, 0,        0, 0, 0)
-    Jc.setPos_J5_J6(0, 0, 0.11315,      0, 0, 0)
-    
 
+
+    
+    # Jc.setPos_World_Base(-1, 0.4, 0, 0, 0, -1.57)
+    Jc.setPos_World_Base(0, 0, 0, 0, 0, 0)
+    Jc.setPos_Base_J1(0, 0, 0.1625,     0, 0, 3.14)
+    Jc.setPos_J1_J2(0, 0, 0,        1.570796327, 0, 0)
+    Jc.setPos_J2_J3(-0.425, 0, 0,  0, 0, 0)
+    Jc.setPos_J3_J4(-0.3922, 0, 0.1333,   0, 0, 0)
+    Jc.setPos_J4_J5(0, -0.0997, -2.044881182297852e-11,       1.570796327, 0, 0)
+    Jc.setPos_J5_J6(0, 0.09959999999999999, -2.042830148012698e-11,      1.570796326589793, 3.141592653589793, 3.141592653589793)
+    
+    
+    
     Jc.setJ1AxisRotation(axis_rotation_j1)
     Jc.setJ2AxisRotation(axis_rotation_j2)
     Jc.setJ3AxisRotation(axis_rotation_j3)
@@ -128,7 +135,10 @@ if __name__ == '__main__':
     Jc.setJ5AxisRotation(axis_rotation_j5)
     Jc.setJ6AxisRotation(axis_rotation_j6)
 
-    
-    # print(Jc.getJacobianNumeric(-0.0289, 0.29937, 1.2057, -0.684427, 1.52358, -0.00002))
+
+    # print("Direct: \n",Jc.getDirectKin_numeric(-1.564, -0.762, -1.764, 3.91, 1.567, 0.0))
+    # print("Jacobian \n",Jc.getJacobianNumeric(-1.564, -0.762, -1.764, 3.91, 1.567, 0.0))
+    # print("Direct: \n",Jc.getDirectKin_numeric(0,0,0,0,0,0))
+    # print("Jacobian \n",Jc.getJacobianNumeric(0,0,0,0,0,0))
     print(Jc.getJacobianParametric())
 

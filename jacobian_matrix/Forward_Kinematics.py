@@ -42,26 +42,26 @@ class FowardKinematics():
             self.parametric_RotationMatrix.append(RotationMatrix_ZYX_Convention(self._gamma[i], self._beta[i], self._alpha[i]))
 
 
-    def setPos_World_Base(self, x, y, z, phi, theta, psi):
-        self.T_0b = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_World_Base(self, x, y, z, psi, theta, phi):
+        self.T_0b = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
-    def setPos_Base_J1(self, x, y, z, phi, theta, psi):
-        self.T_b1 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_Base_J1(self, x, y, z, psi, theta, phi):
+        self.T_b1 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
-    def setPos_J1_J2(self, x, y, z, phi, theta, psi):
-        self.T_12 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_J1_J2(self, x, y, z, psi, theta, phi):
+        self.T_12 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
-    def setPos_J2_J3(self, x, y, z, phi, theta, psi):
-        self.T_23 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_J2_J3(self, x, y, z, psi, theta, phi):
+        self.T_23 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
     
-    def setPos_J3_J4(self, x, y, z, phi, theta, psi):
-        self.T_34 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_J3_J4(self, x, y, z, psi, theta, phi):
+        self.T_34 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
-    def setPos_J4_J5(self, x, y, z, phi, theta, psi):
-        self.T_45 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_J4_J5(self, x, y, z, psi, theta, phi):
+        self.T_45 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
-    def setPos_J5_J6(self, x, y, z, phi, theta, psi):
-        self.T_56 = Homogeneus_Matrix(x, y, z, phi, theta, psi)
+    def setPos_J5_J6(self, x, y, z, psi, theta, phi):
+        self.T_56 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
 
     def setJ1AxisRotation(self, axis_rot = []):
         J1_index = 0
@@ -115,12 +115,15 @@ class FowardKinematics():
     def getDirectKin_ThetaParam(self):
         ''' calcola la cinematica diretta tenendo il grado motore come parametro'''
         
+        
         T_b1_theta = self.T_b1*self.RotMatrix_funcOfTheta1
         T_12_theta = self.T_12*self.RotMatrix_funcOfTheta2
         T_23_theta = self.T_23*self.RotMatrix_funcOfTheta3
         T_34_theta = self.T_34*self.RotMatrix_funcOfTheta4
         T_45_theta = self.T_45*self.RotMatrix_funcOfTheta5
         T_56_theta = self.T_56*self.RotMatrix_funcOfTheta6
+        
+        
 
         return self.T_0b * T_b1_theta * T_12_theta * T_23_theta * T_34_theta * T_45_theta * T_56_theta
     
@@ -170,6 +173,6 @@ if __name__ == '__main__':
     FK.setJ6AxisRotation(axis_rotation_j6)
 
     
-    T_06 = FK.getDirectKin_numeric(0, -2.21, -1.5, -1.19, 1.1, 1.08)
+    T_06 = FK.getDirectKin_numeric(-1.564, -0.762, -1.764, 3.91, 1.567, 0.0)
 
     print (T_06)
