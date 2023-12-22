@@ -1,4 +1,3 @@
-
 from sympy import Matrix, cos, sin
 
 def Rx(gamma):

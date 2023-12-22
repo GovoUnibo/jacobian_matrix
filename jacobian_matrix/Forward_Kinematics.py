@@ -2,9 +2,7 @@ from rigidBodyTF import *
 from sympy import *
 from sympy.physics.vector import init_vprinting
 from sympy.physics.mechanics import dynamicsymbols
-from sympy import lambdify
-import numpy as np
-
+from sympy.matrices import eye
 
 class FowardKinematics():
     
@@ -30,149 +28,87 @@ class FowardKinematics():
         '''SETUP MATRICI PARAMETRICHE'''
         
         #calcolo Giunto Per Giunto Matrici Omogenee Forma Parametrica --> una volta derivate servono per calcolare la J_v forma parametrica
-        self.parametric_HomTfMatrix  = []
-
-        #for i in range(self.num_of_frames):
-        #    self.parametric_HomTfMatrix.append(Homogeneus_Matrix(self._x[i], self._y[i], self._z[i], self._roll[i], self._pitch[i], self._yaw[i] ))
-            #self.parametric_HomTf[0]= HomTF_01
+        
+        self.list_of_tf = []
+        self.list_of_axis_rot = []
+        self.list_of_parametric_RotationMatrix = []
+        
         
         #calcolo la serie di matrici di rotaione che legano fame by frame --> SERVIRANNO PER LA J_w
         self.parametric_RotationMatrix = []
         for i in range(self.num_joints):
             self.parametric_RotationMatrix.append(RotationMatrix_ZYX_Convention(self._gamma[i], self._beta[i], self._alpha[i]))
 
-
-    def setPos_World_Base(self, x, y, z, psi, theta, phi):
+    def set_World_Bl_pose(self, x, y, z, psi, theta, phi):
         self.T_0b = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setPos_Base_J1(self, x, y, z, psi, theta, phi):
-        self.T_b1 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setPos_J1_J2(self, x, y, z, psi, theta, phi):
-        self.T_12 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setPos_J2_J3(self, x, y, z, psi, theta, phi):
-        self.T_23 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
     
-    def setPos_J3_J4(self, x, y, z, psi, theta, phi):
-        self.T_34 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setPos_J4_J5(self, x, y, z, psi, theta, phi):
-        self.T_45 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setPos_J5_J6(self, x, y, z, psi, theta, phi):
-        self.T_56 = Homogeneus_Matrix(x, y, z, psi, theta, phi)
-
-    def setJ1AxisRotation(self, axis_rot = []):
-        J1_index = 0
-        self.axis_rotation_J1 = [axis_rot[k]*self._theta[J1_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta1 = self.parametric_RotationMatrix[J1_index].subs({self._gamma[J1_index]  : self.axis_rotation_J1[0],
-                                                                                    self._beta[J1_index]    : self.axis_rotation_J1[1],
-                                                                                    self._alpha[J1_index]   : self.axis_rotation_J1[2]
+    def add_robot_link(self, pose =[], axis_rot=[], joint_number=0):
+        J_index = joint_number
+        self.list_of_tf.append(Homogeneus_Matrix(pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]))
+        self.list_of_axis_rot.append([axis_rot[k]*self._theta[J_index] for k in range(3)])
+        self.list_of_parametric_RotationMatrix.append(self.parametric_RotationMatrix[J_index].subs({self._gamma[J_index]  : self.list_of_axis_rot[J_index][0],
+                                                                                                    self._beta[J_index]   : self.list_of_axis_rot[J_index][1],
+                                                                                                    self._alpha[J_index]  : self.list_of_axis_rot[J_index][2]
                                                                                     })
-
-    def setJ2AxisRotation(self, axis_rot = []):
-        J2_index = 1
-        self.axis_rotation_J2 = [axis_rot[k]*self._theta[J2_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta2 = self.parametric_RotationMatrix[J2_index].subs({self._gamma[J2_index] : self.axis_rotation_J2[0],
-                                                                                    self._beta[J2_index]   : self.axis_rotation_J2[1],
-                                                                                    self._alpha[J2_index]  : self.axis_rotation_J2[2]
-                                                                                    })
-    
-    def setJ3AxisRotation(self, axis_rot = []):
-        J3_index = 2
-        self.axis_rotation_J3 = [axis_rot[k]*self._theta[J3_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta3 = self.parametric_RotationMatrix[J3_index].subs({self._gamma[J3_index] : self.axis_rotation_J3[0],
-                                                                                    self._beta[J3_index]   : self.axis_rotation_J3[1],
-                                                                                    self._alpha[J3_index]  : self.axis_rotation_J3[2]
-                                                                            })
-
-    def setJ4AxisRotation(self, axis_rot = []):
-        J4_index = 3
-        self.axis_rotation_J4 = [axis_rot[k]*self._theta[J4_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta4 = self.parametric_RotationMatrix[J4_index].subs({self._gamma[J4_index] : self.axis_rotation_J4[0],
-                                                                                    self._beta[J4_index]   : self.axis_rotation_J4[1],
-                                                                                    self._alpha[J4_index]  : self.axis_rotation_J4[2]
-                                                                                    })
-
-    def setJ5AxisRotation(self, axis_rot = []):
-        J5_index = 4
-        self.axis_rotation_J5 = [axis_rot[k]*self._theta[J5_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta5 = self.parametric_RotationMatrix[J5_index].subs({self._gamma[J5_index] : self.axis_rotation_J5[0],
-                                                                                    self._beta[J5_index]   : self.axis_rotation_J5[1],
-                                                                                    self._alpha[J5_index]  : self.axis_rotation_J5[2]
-                                                                                    })
-
-    def setJ6AxisRotation(self, axis_rot = []):
-        J6_index = 5
-        self.axis_rotation_J6 = [axis_rot[k]*self._theta[J6_index] for k in range(3)]
-        self.RotMatrix_funcOfTheta6 = self.parametric_RotationMatrix[J6_index].subs({self._gamma[J6_index] : self.axis_rotation_J6[0],
-                                                                                    self._beta[J6_index]   : self.axis_rotation_J6[1],
-                                                                                    self._alpha[J6_index]  : self.axis_rotation_J6[2]
-                                                                                    })
-
-
-    def getDirectKin_ThetaParam(self):
+                                                     )
+    def getDirectKin_ThetaParam(self, last_joint_index = 0):
         ''' calcola la cinematica diretta tenendo il grado motore come parametro'''
-        
-        
-        T_b1_theta = self.T_b1*self.RotMatrix_funcOfTheta1
-        T_12_theta = self.T_12*self.RotMatrix_funcOfTheta2
-        T_23_theta = self.T_23*self.RotMatrix_funcOfTheta3
-        T_34_theta = self.T_34*self.RotMatrix_funcOfTheta4
-        T_45_theta = self.T_45*self.RotMatrix_funcOfTheta5
-        T_56_theta = self.T_56*self.RotMatrix_funcOfTheta6
-        
-        
+        if last_joint_index > self.num_joints:
+            last_joint_index = self.num_joints
+        T_bl_to_ee = eye(4)
+        for i in range(last_joint_index):
+            T_bl_to_ee =  T_bl_to_ee*self.list_of_tf[i]*self.list_of_parametric_RotationMatrix[i]
 
-        return self.T_0b * T_b1_theta * T_12_theta * T_23_theta * T_34_theta * T_45_theta * T_56_theta
+        return self.T_0b * T_bl_to_ee
     
-    def getDirectKin_numeric(self, j1, j2, j3, j4, j5, j6):
+    def getDirectKin_numeric(self, joint_array=[]):
+        last_joint_index = len(joint_array)
+        T_06_param = self.getDirectKin_ThetaParam(last_joint_index)
 
-        T_06_param = self.getDirectKin_ThetaParam()
+        for i in range(last_joint_index):
+            T_06_param = T_06_param.subs({self._theta[i] : joint_array[i]})
 
-        return T_06_param.subs({self._theta[0] : j1 ,
-                                self._theta[1] : j2 ,
-                                self._theta[2] : j3 ,
-                                self._theta[3] : j4 ,
-                                self._theta[4] : j5 ,
-                                self._theta[5] : j6
-                                })
-        
+        return T_06_param 
 
-
-
-
+        # return T_06_param.subs({self._theta[0] : joint_array[0] ,
+        #                         self._theta[1] : joint_array[1] ,
+        #                         self._theta[2] : joint_array[2] ,
+        #                         self._theta[3] : joint_array[3] ,
+        #                         self._theta[4] : joint_array[4] ,
+        #                         self._theta[5] : joint_array[5]
+        #                         })
 
 
 if __name__ == '__main__':
 
-    axis_rotation_j1 = [0, 1, 0] #ruota positivo attorno all'asse y quando il verso di rotazione è positivo
-    axis_rotation_j2 = [0, 0, -1]#ruota negativo attorno all'asse z quando il verso di rotazione è positivo
-    axis_rotation_j3 = [0, 0, -1]
-    axis_rotation_j4 = [0, 0, -1]
-    axis_rotation_j5 = [0, 1, 0]
+    axis_rotation_j1 = [0, 0, 1] #ruota positivo attorno all'asse y quando il verso di rotazione è positivo
+    axis_rotation_j2 = [0, 0, 1]#ruota negativo attorno all'asse z quando il verso di rotazione è positivo
+    axis_rotation_j3 = [0, 0, 1]
+    axis_rotation_j4 = [0, 0, 1]
+    axis_rotation_j5 = [0, 0, 1]
     axis_rotation_j6 = [0, 0, 1]
 
+    w_b = [0, 0, 0, 0, 0, 0]
+    bl_to_j1 = [0.000, 0.000, 0.163, 0.000, 0.000, 3.142]
+    j1_to_j2 = [0, 0, 0, 1.571, -0.000, 0.000]
+    j2_to_j3 = [-0.425, 0.000, 0.000, 0, 0, 0]
+    j3_to_j4 = [-0.392, 0.000, 0.133, 0, 0, 0]
+    j4_to_j5 = [0.000, -0.100, -0.000, 1.571, -0.000, 0.000]
+    j5_to_j6 = [0.000, 0.100, -0.000, -1.571, 0.000, -0.000]
+
     FK = FowardKinematics(6)
+    FK.set_World_Bl_pose(0, 0, 0, 0, 0, 0)  
+    FK.add_robot_link(bl_to_j1, axis_rotation_j1, 0)
+    FK.add_robot_link(j1_to_j2, axis_rotation_j2, 1)
+    FK.add_robot_link(j2_to_j3, axis_rotation_j3, 2)
+    FK.add_robot_link(j3_to_j4, axis_rotation_j4, 3)
+    FK.add_robot_link(j4_to_j5, axis_rotation_j5, 4)
+    FK.add_robot_link(j5_to_j6, axis_rotation_j6, 5)
 
-    FK.setPos_World_Base(0, 0, 0,       1.5708, 0, 0)
-    FK.setPos_Base_J1(0, 0.1452, 0,     0, 0, 0)
-    FK.setPos_J1_J2(0, 0, 0.146,        0, 0, 0)
-    FK.setPos_J2_J3(0, 0.429, -0.1297,  0, 0, 0)
-    FK.setPos_J3_J4(0, 0.4115, 0.106,   0, 0, 0)
-    FK.setPos_J4_J5(0, 0.106, 0,        0, 0, 0)
-    FK.setPos_J5_J6(0, 0, 0.11315,      0, 0, 0)
-    
+    joint_array = [0.994, -2.199, 0.8726, 0, 1.117, -2.618]    
+    T_06 = FK.getDirectKin_numeric(joint_array)
 
-    FK.setJ1AxisRotation(axis_rotation_j1)
-    FK.setJ2AxisRotation(axis_rotation_j2)
-    FK.setJ3AxisRotation(axis_rotation_j3)
-    FK.setJ4AxisRotation(axis_rotation_j4)
-    FK.setJ5AxisRotation(axis_rotation_j5)
-    FK.setJ6AxisRotation(axis_rotation_j6)
-
-    
-    T_06 = FK.getDirectKin_numeric(-1.564, -0.762, -1.764, 3.91, 1.567, 0.0)
-
+    print("Direct:")
     print (T_06)
+    # print("Moveit")
+    # print(Homogeneus_Matrix(-0.170, 0.064, 0.950, -0.453, -0.260, 0.069))
