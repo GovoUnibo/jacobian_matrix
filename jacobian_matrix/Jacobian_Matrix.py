@@ -1,5 +1,5 @@
 from requests import get
-from sympy import Matrix
+from sympy import Matrix, simplify
 from Forward_Kinematics import FowardKinematics
 
 
@@ -7,16 +7,15 @@ from Forward_Kinematics import FowardKinematics
 class Jacobian(FowardKinematics):
     def __init__(self, num_of_joints):
         super().__init__(num_of_joints = num_of_joints)
-    
-    def get_angular_velocity(self, joint_values=[]):
-        joint_index = len(joint_values) -1 
+        self.num_of_joints = num_of_joints
+    def get_angular_velocity(self, joint_index):
         axis_of_joint = Matrix([self.list_of_axis_rot[joint_index][0], self.list_of_axis_rot[joint_index][1], self.list_of_axis_rot[joint_index][2]])
         axis_of_joint = axis_of_joint.subs({self._theta[joint_index]: 1})
-        FK_to_Joint = self.getDirectKin_numeric(joint_values)
+        FK_to_Joint = self.getDirectKin_ThetaParam(joint_index+1) #brutto il +1 ma va bene così perchè c'è un for in rage nella funzione
         return FK_to_Joint[0:3, 0:3] * axis_of_joint #estraggo la colonna della matrice di rotazione del giunto n relativa all'asse di rotazione
         
-    def getJacobianParametric(self, joint_values=[]):
-        T_06_param = self.getDirectKin_ThetaParam(len(joint_values))
+    def getJacobianParametric(self):
+        T_06_param = self.getDirectKin_ThetaParam(self.num_of_joints)
 
         p_x_y_z = T_06_param.col(-1) #prende ultima colonna
 
@@ -34,13 +33,12 @@ class Jacobian(FowardKinematics):
             J_v_raw3.append(p_z.diff(self._theta[i]))
 
         #prendo la colonna dell'asse di rotazione z_ii
-        
-        Jw_col1 = self.get_angular_velocity(joint_values[:1])
-        Jw_col2 = self.get_angular_velocity(joint_values[:2])
-        Jw_col3 = self.get_angular_velocity(joint_values[:3])
-        Jw_col4 = self.get_angular_velocity(joint_values[:4])
-        Jw_col5 = self.get_angular_velocity(joint_values[:5])
-        Jw_col6 = self.get_angular_velocity(joint_values[:6])
+        Jw_col1 = self.get_angular_velocity(0)
+        Jw_col2 = self.get_angular_velocity(1)
+        Jw_col3 = self.get_angular_velocity(2)
+        Jw_col4 = self.get_angular_velocity(3)
+        Jw_col5 = self.get_angular_velocity(4)
+        Jw_col6 = self.get_angular_velocity(5)
 
 
         Jacobian =  Matrix([
@@ -54,15 +52,15 @@ class Jacobian(FowardKinematics):
                         ])
         
         # return Jacobian
-        # Jacobian = sympy.simplify(Jacobian)
+        Jacobian = simplify(Jacobian)
         
-        return Jacobian.evalf(7)
+        return Jacobian.evalf(4)
 
     def getJacobianNumeric(self, joint_values = []):
         
         
 
-        Jacobian = self.getJacobianParametric(joint_values)
+        Jacobian = self.getJacobianParametric()
 
         for i in range(self.num_joints):
             for j in range(self.num_joints):
@@ -102,6 +100,6 @@ if __name__ == '__main__':
     # print("Direct: \n",Jc.getDirectKin_numeric(-1.564, -0.762, -1.764, 3.91, 1.567, 0.0))
     # print("Jacobian \n",Jc.getJacobianNumeric(0.994, -2.199, 0.8726, 0, 1.117, -2.618))
     # print("Direct: \n",Jc.getDirectKin_numeric(0,0,0,0,0,0))
-    print("Jacobian \n",Jc.getJacobianNumeric([-2.548871977575965, -2.0248609214314786, -1.574481982947777, -0.29908405377582326, 5.536207367575946, 0.6055001576352761]))
-    # print(Jc.getJacobianParametric())
+    # print("Jacobian \n",Jc.getJacobianNumeric([-2.548871977575965, -2.0248609214314786, -1.574481982947777, -0.29908405377582326, 5.536207367575946, 0.6055001576352761]))
+    print(Jc.getJacobianParametric())
 
