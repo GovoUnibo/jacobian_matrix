@@ -1,4 +1,5 @@
 from sympy import Matrix, cos, sin
+from scipy.spatial.transform import Rotation
 
 def Rx(gamma):
     return (Matrix([[1, 0 ,          0 ,            0],
@@ -69,3 +70,16 @@ def Homogeneus_Matrix(x, y, z, psi, theta, phi):
                     0,
                     1] 
                 ])
+
+
+def homogeneous_to_translation_quaternion(matrix):
+    # Estrai la parte di traslazione dalla matrice omogenea
+    translation = matrix[:3, 3]
+
+    # Estrai la parte di rotazione dalla matrice omogenea
+    rotation_matrix = matrix[:3, :3]
+
+    # Converte la matrice di rotazione in quaternion utilizzando scipy
+    quaternion = Rotation.from_matrix(rotation_matrix).as_quat()
+
+    return translation, quaternion
